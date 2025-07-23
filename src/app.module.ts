@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { IndexationModule } from './indexation/indexation.module';
-import { McpServerModule } from './mcp-server/mcp-server.module';
+
 
 
 
@@ -15,7 +15,6 @@ import { McpServerModule } from './mcp-server/mcp-server.module';
     }),
     CommonModule,
     IndexationModule,
-    McpServerModule,
   ],
   controllers: [],
   providers: [],
