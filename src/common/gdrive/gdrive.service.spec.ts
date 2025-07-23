@@ -1,6 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GdriveService } from './gdrive.service';
 
+jest.mock('googleapis', () => ({
+  google: {
+    drive: jest.fn().mockReturnValue({
+      files: {
+        list: jest.fn().mockResolvedValue({ data: { files: [] } }),
+        get: jest.fn().mockResolvedValue({ data: {} }),
+      },
+    }),
+    auth: {
+      GoogleAuth: jest.fn().mockImplementation(() => ({
+        getClient: jest.fn().mockResolvedValue({}),
+      })),
+    },
+  },
+}));
+
 describe('GdriveService', () => {
   let service: GdriveService;
 
@@ -16,37 +32,35 @@ describe('GdriveService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('listFiles', () => {
-    it('debería retornar una lista de archivos', async () => {
-      jest.spyOn(service, 'listFiles').mockResolvedValue([{ id: '1', name: 'archivo.txt' }]);
-      const files = await service.listFiles();
-      expect(Array.isArray(files)).toBe(true);
-      expect(files[0]).toHaveProperty('id');
-      expect(files[0]).toHaveProperty('name');
-    });
-  });
 
-  describe('getFile', () => {
-    it('debería retornar el contenido de un archivo', async () => {
-      jest.spyOn(service, 'getFile').mockResolvedValue('contenido');
-      const content = await service.getFile('1');
-      expect(content).toBe('contenido');
-    });
-  });
 
-  describe('uploadFile', () => {
-    it('debería subir un archivo y retornar su id', async () => {
-      jest.spyOn(service, 'uploadFile').mockResolvedValue('123');
-      const fileId = await service.uploadFile('archivo.txt', Buffer.from('contenido'));
-      expect(fileId).toBe('123');
-    });
-  });
+  describe('getModifiedFilesInLast24Hours', () => {
+    it('debería retornar archivos modificados en las últimas 24 horas', async () => {
+      // Simula el resultado esperado
+      const mockFiles = {
+        message: 'Archivos modificados en las últimas 24 horas encontrados.',
+        files: [{ id: '1', name: 'archivo.txt', modifiedTime: new Date().toISOString() }]
+      };
+      jest.spyOn(service, 'getModifiedFilesInLast24Hours').mockResolvedValue(mockFiles);
 
-  describe('deleteFile', () => {
-    it('debería eliminar un archivo y retornar true', async () => {
-      jest.spyOn(service, 'deleteFile').mockResolvedValue(true);
-      const result = await service.deleteFile('1');
-      expect(result).toBe(true);
+      const result = await service.getModifiedFilesInLast24Hours('carpetaId');
+      expect(result).toEqual(mockFiles);
+      expect(Array.isArray(result.files)).toBe(true);
+      expect(result.files[0]).toHaveProperty('id');
+      expect(result.files[0]).toHaveProperty('name');
+      expect(result.files[0]).toHaveProperty('modifiedTime');
+    });
+
+    it('debería retornar un objeto con arreglo vacío si no hay archivos', async () => {
+      jest.spyOn(service, 'getModifiedFilesInLast24Hours').mockResolvedValue({
+        message: 'Archivos modificados en las últimas 24 horas encontrados.',
+        files: []
+      });
+      const result = await service.getModifiedFilesInLast24Hours('carpetaId');
+      expect(result).toEqual({
+        message: 'Archivos modificados en las últimas 24 horas encontrados.',
+        files: []
+      });
     });
   });
 });

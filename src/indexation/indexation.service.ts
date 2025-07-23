@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmbeddingsService } from 'src/common/embeddings/embeddings.service';
+import { EmbeddingsService } from '../common/embeddings/embeddings.service';
 
 @Injectable()
 export class IndexationService {
