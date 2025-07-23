@@ -69,11 +69,7 @@ export class EmbeddingsService {
             const chunkId = `${file.id!}-chunk-${i}`;
 
             try {
-                const embeddingRes = await this.openai.embeddings.create({
-                    input: chunk,
-                    model: process.env.MODEL_EMBEDDINGS || 'text-embedding-3-small',
-                });
-
+                const embeddingRes = await this.createEmbedding(chunk);
                 if (!embeddingRes.data.length || !embeddingRes.data[0]?.embedding) {
                     this.logger.warn(`No se pudo generar embedding para chunk ${chunkId}`);
                     continue;
@@ -212,6 +208,13 @@ export class EmbeddingsService {
     }
 
 
+
+    private async createEmbedding(chunk: string): Promise<any> {
+        return this.openai.embeddings.create({
+            input: chunk,
+            model: process.env.MODEL_EMBEDDINGS || 'text-embedding-3-small',
+        });
+    }
 
 
 
