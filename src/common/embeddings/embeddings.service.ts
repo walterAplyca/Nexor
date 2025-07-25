@@ -20,6 +20,7 @@ export class EmbeddingsService {
     private readonly index = this.pinecone.Index(process.env.PINECONE_INDEX ?? (() => {
         throw new Error('PINECONE_INDEX env var is not set');
     })());
+    private readonly indexName = process.env.PINECONE_INDEX || 'default';
     private readonly openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     private readonly logger = new Logger(EmbeddingsService.name);
 
@@ -209,7 +210,7 @@ export class EmbeddingsService {
 
 
 
-    private async createEmbedding(chunk: string): Promise<any> {
+    public async createEmbedding(chunk: string): Promise<any> {
         return this.openai.embeddings.create({
             input: chunk,
             model: process.env.MODEL_EMBEDDINGS || 'text-embedding-3-small',
@@ -217,6 +218,23 @@ export class EmbeddingsService {
     }
 
 
+    public async querySimilarChunks(embedding: number[], topK: number = 5) {
+        const index = this.pinecone.Index(this.indexName);
+        const response = await index.query({
+            vector: embedding,
+            topK,
+            includeMetadata: true,
+        });
+        return response.matches || [];
+    }
+    public async chat(prompt: Array<{ role: 'system' | 'user' | 'assistant', content: string }>) {
+        const response = await this.openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: prompt,
+            temperature: 0.7
+        });
 
+        return response.choices[0].message;
+    }
 
 }

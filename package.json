@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.21",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -27,12 +28,14 @@
     "@nestjs/platform-express": "^11.0.1",
     "@pinecone-database/pinecone": "^6.1.1",
     "@supabase/supabase-js": "^2.52.0",
+    "docx": "^9.5.1",
     "googleapis": "^153.0.0",
     "mammoth": "^1.9.1",
     "openai": "^5.10.1",
     "pdf-parse": "^1.1.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
