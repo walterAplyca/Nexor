@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { BusinessLogicException } from '../common/errors/business-errors';
 import { ToolsService } from './tools/tools.service';
 import { Chat } from '../common/interfaces/chat.interface';
 
@@ -31,16 +32,18 @@ export class McpEntryController {
                     data = await this.toolsService.generateDocument(argumentos);
                     break;
                 default:
-                    status = 'error';
-                    message = 'Tool not recognized';
+                    throw new BusinessLogicException(`Tool ${tool_name} not recognized`, 400);
             }
         } catch (err) {
-            status = 'error';
-            message = err.message || 'Internal server error';
+            throw new BusinessLogicException(err.message || 'Internal server error', 500);
         }
 
         return { status, message, data };
     }
 
+    @Get('tools')
+    getTools() {
+        return this.toolsService.getAvailableTools();
+    }
 
 }

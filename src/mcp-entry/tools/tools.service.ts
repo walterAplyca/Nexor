@@ -32,12 +32,15 @@ export class ToolsService {
             const cleanedHistory = truncateMessages(messages);
             const prompt: Chat[] = [
                 ...cleanedHistory,
-                { role: 'system', content: `Contexto relevante:\n\n${context}` },
-                { role: 'system', content: `Redacta una cotización con estructura clara:\n- Título\n - Un texto descriptivo de todos las actividades a realizar\n- Tabla con Producto, Precio, Marca\n- Un texto donde se defina el tiempo de entrega en número de días habiles` }
+                { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
+                { role: 'system', content: `Redacte un resumen ejecutivo de la información consultada` }
             ];
+            console.log('Prompt:', prompt);
+            console.log('Context:', context);
             return {
                 message: 'Respuesta generada correctamente',
                 data: await this.embeddingsService.chat(prompt),
+                references: context.urls.length > 0 ? context.urls : undefined, // 👈 Aquí se agregan las URLs
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -56,13 +59,14 @@ export class ToolsService {
             const cleanedHistory = truncateMessages(messages);
             const prompt: Chat[] = [
                 ...cleanedHistory,
-                { role: 'system', content: `Contexto relevante:\n\n${context}` },
-                { role: 'system', content: `Redacta una cotización con estructura clara:\n- Título\n- Tabla con Producto, Precio, Marca\n- Comentario final` }
+                { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
+                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización con estructura clara:\n- Título\n- Tabla con Producto, Precio, Marca\n- Comentario final` }
             ];
 
             return {
                 message: 'Respuesta generada correctamente',
                 data: await this.embeddingsService.chat(prompt),
+                references: context.urls.length > 0 ? context.urls : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -83,12 +87,114 @@ export class ToolsService {
     }
 
 
+    getAvailableTools() {
+        return [
+            {
+                name: 'consult_document',
+                description: 'Consulta información en documentos de Drive basado en un chat',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        chat: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    role: {
+                                        type: 'string',
+                                        enum: ['system', 'user', 'assistant'],
+                                    },
+                                    content: {
+                                        type: 'string',
+                                    },
+                                },
+                                required: ['role', 'content'],
+                            },
+                        },
+                    },
+                    required: ['chat'],
+                },
+            },
+            {
+                name: 'generate_report',
+                description: 'Genera un informe o reporte a partir de un chat tipo conversación',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        chat: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    role: {
+                                        type: 'string',
+                                        enum: ['system', 'user', 'assistant'],
+                                    },
+                                    content: {
+                                        type: 'string',
+                                    },
+                                },
+                                required: ['role', 'content'],
+                            },
+                        },
+                    },
+                    required: ['chat'],
+                },
+            },
+            {
+                name: 'generate_document',
+                description: 'Genera un documento en Google Drive a partir de una estructura con título, tareas, actividades, etc.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        title: { type: 'string' },
+                        generalDescription: { type: 'string' },
+                        tasks: {
+                            type: 'array',
+                            items: { type: 'string' },
+                        },
+                        activities: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    title: { type: 'string' },
+                                    hours: { type: 'number' },
+                                },
+                                required: ['title', 'hours'],
+                            },
+                        },
+                        deliveryTime: { type: 'string' },
+                        notes: { type: 'string' },
+                    },
+                    required: [
+                        'title',
+                        'generalDescription',
+                        'tasks',
+                        'activities',
+                        'deliveryTime',
+                        'notes',
+                    ],
+                },
+            },
+        ];
+    }
+
     private async getChunkChat(messages: Chat[]) {
         const lastUserMessage = this.getLastUserMessage(messages);
         const embedding = await this.embeddingsService.createEmbedding(lastUserMessage?.content ?? '');
-        const chunks = await this.embeddingsService.querySimilarChunks(embedding, 5);
+        const embeddingRes = embedding.data[0].embedding;
+        const chunks = await this.embeddingsService.querySimilarChunks(embeddingRes, 5);
         const context = chunks.map(c => c.metadata?.text).join('\n\n');
-        return context;
+        console.log('Context in Chunks:', context);
+        const urls = chunks
+            .map(c => c.metadata?.url) // <- Asegúrate de que sea `.url` (no `.urls`)
+            .filter((url): url is string => typeof url === 'string'); // Solo strings válidos
+
+        return {
+            context,
+            urls
+        };
     }
 
     private getLastUserMessage(messages: Chat[]): Chat | null {
