@@ -32,7 +32,8 @@ export class GdriveService {
         const mimeTypes = [
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-            'application/msword' // .doc
+            'application/msword', // .doc
+            'application/vnd.google-apps.document' // Google Docs nativo
         ];
 
         const now = new Date();
@@ -45,6 +46,7 @@ export class GdriveService {
         const res = await this.drive.files.list({
             q: query,
             fields: 'files(id, name, modifiedTime, mimeType)',
+            supportsAllDrives: true,
         });
 
         const files = res.data.files || [];
@@ -101,14 +103,14 @@ export class GdriveService {
                 },
             ],
         });
-
         const buffer = await Packer.toBuffer(doc);
         const tempFilePath = path.join(__dirname, `temp-${uuidv4()}.docx`);
         fs.writeFileSync(tempFilePath, buffer);
 
         const fileMetadata = {
             name: `${title}.docx`,
-            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            mimeType: 'application/vnd.google-apps.document',
+            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
         };
 
         const media = {
@@ -120,6 +122,7 @@ export class GdriveService {
             requestBody: fileMetadata,
             media,
             fields: 'id, webViewLink',
+            supportsAllDrives: true,
         });
 
         // Borra el archivo temporal

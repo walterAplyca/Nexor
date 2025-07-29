@@ -12,7 +12,10 @@ export async function getDriveService(): Promise<drive_v3.Drive> {
             client_email: process.env.GOOGLE_CLIENT_EMAIL,
             client_id: process.env.GOOGLE_CLIENT_ID,
         },
-        scopes: [process.env.GOOGLE_DRIVE_SCOPE || 'https://www.googleapis.com/auth/drive.readonly'],
+        scopes: [
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/documents',
+        ],
     });
 
 
