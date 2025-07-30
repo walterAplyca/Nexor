@@ -28,8 +28,7 @@ export class ToolsService {
     async consultDocument(messages: Chat[]) {
 
         try {
-            const context = await this.getChunkChat(messages);
-            const cleanedHistory = truncateMessages(messages);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 4);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -39,8 +38,8 @@ export class ToolsService {
             console.log('Context:', context);
             return {
                 message: 'Respuesta generada correctamente',
-                data: await this.embeddingsService.chat(prompt),
-                references: context.urls.length > 0 ? context.urls : undefined, // 👈 Aquí se agregan las URLs
+                data: await this.embeddingsService.chat(prompt, 0.7),
+                references: context.urls.length > 0 ? context.urls : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -55,8 +54,7 @@ export class ToolsService {
 
     async generateReport(messages: Chat[]) {
         try {
-            const context = await this.getChunkChat(messages);
-            const cleanedHistory = truncateMessages(messages);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 5);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -65,7 +63,7 @@ export class ToolsService {
 
             return {
                 message: 'Respuesta generada correctamente',
-                data: await this.embeddingsService.chat(prompt),
+                data: await this.embeddingsService.chat(prompt, 0.7),
                 references: context.urls.length > 0 ? context.urls : undefined,
             };
         } catch (error) {
@@ -85,6 +83,7 @@ export class ToolsService {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
     getAvailableTools() {
@@ -180,11 +179,29 @@ export class ToolsService {
         ];
     }
 
-    private async getChunkChat(messages: Chat[]) {
+
+    /**
+     * Prepara el historial de mensajes, obtiene el tipo de archivo y el contexto relevante.
+     * @param messages - Historial de mensajes del chat.
+     * @returns Un objeto con cleanedHistory, typeFile y context.
+     */
+    private async prepareContext(messages: Chat[], topK: number = 5) {
+        const cleanedHistory = truncateMessages(messages);
+        const typeFile = await this.embeddingsService.getTypeFileDocument(
+            cleanedHistory.map(m => m.content).join('\n'),
+            'query'
+        );
+        console.log('Type File:', typeFile);
+        const context = await this.getChunkChat(messages, typeFile, topK);
+        return { cleanedHistory, typeFile, context };
+    }
+
+
+    private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5) {
         const lastUserMessage = this.getLastUserMessage(messages);
         const embedding = await this.embeddingsService.createEmbedding(lastUserMessage?.content ?? '');
         const embeddingRes = embedding.data[0].embedding;
-        const chunks = await this.embeddingsService.querySimilarChunks(embeddingRes, 5);
+        const chunks = await this.embeddingsService.querySimilarChunks(embeddingRes, typeFile, topK);
         const context = chunks.map(c => c.metadata?.text).join('\n\n');
         console.log('Context in Chunks:', context);
         const urls = chunks

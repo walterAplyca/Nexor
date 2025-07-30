@@ -55,6 +55,9 @@ export class EmbeddingsService {
             return;
         }
 
+
+        const typeFile = await this.getTypeFileDocument(text, 'document');
+
         // Dividir el texto en fragmentos si es necesario
         const chunks = this.splitTextIntoChunks(text, 1000);
         if (chunks.length === 0) {
@@ -88,6 +91,7 @@ export class EmbeddingsService {
                         createdAt: new Date().toISOString(),
                         url: `https://drive.google.com/file/d/${file.id}/view`,
                         sourceType: 'google_drive',
+                        typeFile: typeFile,
                     },
                 });
                 this.logger.log(`Embeddings generados para ${file.name}`);
@@ -218,23 +222,69 @@ export class EmbeddingsService {
     }
 
 
-    public async querySimilarChunks(embedding: number[], topK: number = 5) {
+    public async querySimilarChunks(embedding: number[], typeFile: string, topK: number = 5,) {
         const index = this.pinecone.Index(this.indexName);
         const response = await index.query({
             vector: embedding,
             topK,
             includeMetadata: true,
+            filter: {
+                typeFile: typeFile
+            }
         });
         return response.matches || [];
     }
-    public async chat(prompt: Array<{ role: 'system' | 'user' | 'assistant', content: string }>) {
+    public async chat(prompt: Array<{ role: 'system' | 'user' | 'assistant', content: string }>, temperature: number = 0.7): Promise<any> {
         const response = await this.openai.chat.completions.create({
             model: 'gpt-4',
             messages: prompt,
-            temperature: 0.7
+            temperature
         });
 
         return response.choices[0].message;
+    }
+
+    async getTypeFileDocument(content: string, contexto: 'document' | 'query'): Promise<string> {
+        const prompt = contexto === 'document'
+            ? `
+                Analiza el siguiente texto extraído de un documento y determina cuál de los siguientes tipos representa mejor su contenido:
+
+                1. Informe de incidencia
+                2. Reporte de horas
+                3. Cotización
+        
+
+                Texto del documento:
+                ---
+                ${content.slice(0, 2000)}
+                ---
+
+                Responde únicamente con una de las siguientes palabras en minúsculas: "incidencia", "reporte_horas", "cotizacion", "otro".
+                `
+            : `
+                Analiza la siguiente pregunta o solicitud de un usuario y clasifícala en una de estas categorías:
+
+                1. Quiere información sobre un informe de incidencia
+                2. Quiere ver un reporte de horas
+                3. Está pidiendo una cotización
+               
+
+                Consulta del usuario:
+                ---
+                "${content}"
+                ---
+
+                Responde únicamente con uno de estos valores: "incidencia", "reporte_horas", "cotizacion", "otro".
+                `;
+
+
+        const messages: Array<{ role: 'system' | 'user' | 'assistant', content: string }> = [
+            { role: 'system', content: 'Eres un clasificador inteligente de documentos y preguntas.' },
+            { role: 'user', content: prompt }
+        ];
+        const respuesta = await this.chat(messages, 0);
+        return respuesta.content.trim() as 'incidencia' | 'reporte_horas' | 'cotizacion';
+
     }
 
 }
