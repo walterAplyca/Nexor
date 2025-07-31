@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from 'docx';
+import * as fs from 'fs';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { getDriveService } from './google-drive.helper';
+import { DocumentContent } from '../interfaces/document.interface';
+
 
 
 @Injectable()
@@ -14,6 +20,11 @@ export class GdriveService {
         this.drive = await getDriveService();
     }
 
+    /**
+     * Obtiene los archivos modificados en las últimas 24 horas de una carpeta específica.
+     * @param folderId El ID de la carpeta de Google Drive.
+     * @returns Una lista de archivos modificados en las últimas 24 horas.
+     */
     async getModifiedFilesInLast24Hours(folderId: string) {
         if (!this.drive) {
             await this.initDrive(); // asegúrate que esté inicializado
@@ -21,7 +32,8 @@ export class GdriveService {
         const mimeTypes = [
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-            'application/msword' // .doc
+            'application/msword', // .doc
+            'application/vnd.google-apps.document' // Google Docs nativo
         ];
 
         const now = new Date();
@@ -34,6 +46,7 @@ export class GdriveService {
         const res = await this.drive.files.list({
             q: query,
             fields: 'files(id, name, modifiedTime, mimeType)',
+            supportsAllDrives: true,
         });
 
         const files = res.data.files || [];
@@ -51,5 +64,76 @@ export class GdriveService {
             files,
         };
     }
+
+    /**
+     * Crea y sube un documento a Google Drive.
+     * @param content Contenido del documento a crear.
+     * @returns Un objeto con el ID del archivo y el enlace para verlo en Google Drive.
+     */
+    async createAndUploadDocument(content: DocumentContent) {
+        const { title, generalDescription, tasks, activities, deliveryTime, notes } = content;
+        const doc = new Document({
+            sections: [
+                {
+                    properties: {},
+                    children: [
+                        new Paragraph({ text: title, heading: "Heading1" }),
+                        new Paragraph({ text: generalDescription, spacing: { after: 200 } }),
+                        ...tasks.map(task => new Paragraph({ text: `• ${task}`, spacing: { after: 100 } })),
+                        new Paragraph({ text: "Resumen de actividades", heading: "Heading2", spacing: { before: 300 } }),
+                        new Table({
+                            rows: [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph("Actividad")] }),
+                                        new TableCell({ children: [new Paragraph("Horas estimadas")] }),
+                                    ],
+                                }),
+                                ...activities.map(act => new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph(act.title)] }),
+                                        new TableCell({ children: [new Paragraph(`${act.hours}`)] }),
+                                    ],
+                                })),
+                            ],
+                        }),
+                        new Paragraph({ text: `Tiempo de entrega: ${deliveryTime}`, spacing: { before: 300 } }),
+                        new Paragraph({ text: `Notas: ${notes}`, spacing: { before: 200 } }),
+                    ],
+                },
+            ],
+        });
+        const buffer = await Packer.toBuffer(doc);
+        const tempFilePath = path.join(__dirname, `temp-${uuidv4()}.docx`);
+        fs.writeFileSync(tempFilePath, buffer);
+
+        const fileMetadata = {
+            name: `${title}.docx`,
+            mimeType: 'application/vnd.google-apps.document',
+            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+        };
+
+        const media = {
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            body: fs.createReadStream(tempFilePath),
+        };
+
+        const file = await this.drive.files.create({
+            requestBody: fileMetadata,
+            media,
+            fields: 'id, webViewLink',
+            supportsAllDrives: true,
+        });
+
+        // Borra el archivo temporal
+        fs.unlinkSync(tempFilePath);
+
+        return {
+            fileId: file.data.id,
+            link: file.data.webViewLink,
+        };
+    }
+
+
 
 }
