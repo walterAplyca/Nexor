@@ -87,7 +87,8 @@
       ".*\\.module\\.ts",
       ".*\\.dto\\.ts",
       ".*\\.entity\\.ts",
-      ".*\\.interface\\.ts"
+      ".*\\.interface\\.ts",
+      ".*\\.util\\.ts"
     ],
     "testEnvironment": "node"
   }
