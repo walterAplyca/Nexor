@@ -85,35 +85,39 @@ export class ToolsService {
     }
 
 
+    private toolFormat(nameTool: string, description: string) {
+        return {
+            name: nameTool,
+            description: description,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chat: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                role: {
+                                    type: 'string',
+                                    enum: ['system', 'user', 'assistant'],
+                                },
+                                content: {
+                                    type: 'string',
+                                },
+                            },
+                            required: ['role', 'content'],
+                        },
+                    },
+                },
+                required: ['chat'],
+            },
+        };
+    }
 
     getAvailableTools() {
         return [
-            {
-                name: 'consult_document',
-                description: 'Consulta información en documentos de Drive basado en un chat',
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        chat: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    role: {
-                                        type: 'string',
-                                        enum: ['system', 'user', 'assistant'],
-                                    },
-                                    content: {
-                                        type: 'string',
-                                    },
-                                },
-                                required: ['role', 'content'],
-                            },
-                        },
-                    },
-                    required: ['chat'],
-                },
-            },
+            this.toolFormat('consult_document', 'Consulta un documento basado en el historial de chat y el contexto relevante'),
+            this.toolFormat('generate_report', 'Genera un reporte basado en el historial de chat y el contexto relevante'),
             {
                 name: 'generate_report',
                 description: 'Genera un informe o reporte a partir de un chat tipo conversación',
