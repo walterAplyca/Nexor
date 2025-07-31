@@ -1,0 +1,569 @@
+{
+	"info": {
+		"_postman_id": "8a061b91-02db-458a-a58c-2b9f66b3e382",
+		"name": "Backend Nexor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21757271"
+	},
+	"item": [
+		{
+			"name": "Get tools",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/mcp-entry/tools",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"mcp-entry",
+						"tools"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Respuesta",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry/tools",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry",
+								"tools"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1326"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"52e-2fiQVdTJbAYkfiQD94dszKkwUzA\""
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 26 Jul 2025 21:18:52 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"name\": \"consult_document\",\n        \"description\": \"Consulta información en documentos de Drive basado en un chat\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"chat\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"role\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                    \"system\",\n                                    \"user\",\n                                    \"assistant\"\n                                ]\n                            },\n                            \"content\": {\n                                \"type\": \"string\"\n                            }\n                        },\n                        \"required\": [\n                            \"role\",\n                            \"content\"\n                        ]\n                    }\n                }\n            },\n            \"required\": [\n                \"chat\"\n            ]\n        }\n    },\n    {\n        \"name\": \"generate_report\",\n        \"description\": \"Genera un informe o reporte a partir de un chat tipo conversación\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"chat\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"role\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                    \"system\",\n                                    \"user\",\n                                    \"assistant\"\n                                ]\n                            },\n                            \"content\": {\n                                \"type\": \"string\"\n                            }\n                        },\n                        \"required\": [\n                            \"role\",\n                            \"content\"\n                        ]\n                    }\n                }\n            },\n            \"required\": [\n                \"chat\"\n            ]\n        }\n    },\n    {\n        \"name\": \"generate_document\",\n        \"description\": \"Genera un documento en Google Drive a partir de una estructura con título, tareas, actividades, etc.\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"title\": {\n                    \"type\": \"string\"\n                },\n                \"generalDescription\": {\n                    \"type\": \"string\"\n                },\n                \"tasks\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                        \"type\": \"string\"\n                    }\n                },\n                \"activities\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"title\": {\n                                \"type\": \"string\"\n                            },\n                            \"hours\": {\n                                \"type\": \"number\"\n                            }\n                        },\n                        \"required\": [\n                            \"title\",\n                            \"hours\"\n                        ]\n                    }\n                },\n                \"deliveryTime\": {\n                    \"type\": \"string\"\n                },\n                \"notes\": {\n                    \"type\": \"string\"\n                }\n            },\n            \"required\": [\n                \"title\",\n                \"generalDescription\",\n                \"tasks\",\n                \"activities\",\n                \"deliveryTime\",\n                \"notes\"\n            ]\n        }\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "Tool Consult Document",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tool_name\": \"consult_document\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Expliqueme que sucedió en el incidente de Mobil Lubricantes y como se atendió\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/mcp-entry",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"mcp-entry"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "New Request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"consult_documents\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"¿Qué eventos importantes ocurrieron en junio con Mobil Lubricantes?\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "68"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"44-HQDGeQgwKIuZkOpFa9pH5/Lpbpw\""
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 26 Jul 2025 22:17:38 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"statusCode\": 500,\n    \"message\": \"Tool consult_documents not recognized\"\n}"
+				},
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"consult_document\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Expliqueme que sucedió en el incidente de Mobil Lubricantes y como se atendió\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1781"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"6f5-hjaCmMHo4+3GjyBZ4ZWW6YrPQH0\""
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 26 Jul 2025 22:20:23 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"El incidente de Mobil Lubricantes ocurrió el 9 de abril cuando la página de inicio de su sitio web no se renderizaba correctamente debido a un conflicto en el sistema de caché de la aplicación web desarrollada en Next.js. El problema se identificó y se atendió activando el Comité Técnico de Seguridad de Aplyca, que incluía diversos roles desde un gerente de incidentes hasta un documentador.\\n\\nEl equipo técnico determinó que la causa principal fue un conflicto en el sistema de caché de la aplicación web, causado por la ausencia de persistencia del caché entre revalidaciones. Para mitigar el problema, se revirtieron los cambios y se limpiaron las cachés del sistema, restaurando la estructura original de las URLs en inglés. El incidente se resolvió en aproximadamente una hora desde su detección.\\n\\nPosteriormente, se realizó una revisión exhaustiva del código y se generó un ticket de soporte para el fabricante del CMS Ibexa. La causa raíz del incidente se identificó y se realizaron ajustes en el entorno de QA, garantizando que el error ya no se presentaba. Finalmente, el ajuste para la mitigación del incidente se desplegó en el entorno productivo y se comunicó al cliente.\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            \"https://drive.google.com/file/d/15MzHGIZjd3e7vqYLXz0y04XSWzYysBEU/view\",\n            \"https://drive.google.com/file/d/1a9JWgNDjUAhruoqAzrq8CiOrJwnYGaYv/view\",\n            \"https://drive.google.com/file/d/15MzHGIZjd3e7vqYLXz0y04XSWzYysBEU/view\",\n            \"https://drive.google.com/file/d/1fhMKRS9O-yq-ocYM2T77y3wA_5JSeqZ8/view\",\n            \"https://drive.google.com/file/d/1wkQP32MOz_t-PBjYoPOoNl5KWj1VZ4by/view\"\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Tool Generar cotizacion",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/mcp-entry",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"mcp-entry"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1548"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"60c-qP2XDTvwX3DiCynWi+omCmyifXo\""
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 26 Jul 2025 23:36:09 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"Cotización para Implementación de Funcionalidades Web\\n\\n| Producto/Servicio | Horas | Precio por Hora | Total |\\n|---|---|---|---|\\n| Opción para descargar archivos con histórico de participantes | 5 | $100 | $500 |\\n| Integración de widget de Instagram | 6 | $100 | $600 |\\n| Desarrollo de módulo de ubicaciones con mapa interactivo | 24 | $100 | $2400 |\\n| **Total** | 35 |  | **$3500** |\\n\\n*Todos los precios están en USD.\\n\\nComentarios Finales:\\n\\nPor favor, tenga en cuenta que esta cotización es una estimación basada en los requerimientos proporcionados. Cualquier cambio en los requerimientos puede afectar el costo final y el tiempo de entrega. Esta cotización es válida por 30 días a partir de la fecha de emisión.\\n\\nSi tiene alguna pregunta o desea discutir más detalles sobre esta cotización, no dude en ponerse en contacto con nosotros. Gracias por considerar nuestros servicios para su proyecto. Esperamos tener la oportunidad de trabajar con usted.\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1W0hVRT7ZfLHvp2zd6J_XEUqzQCBES1R6/view\",\n            \"https://drive.google.com/file/d/1fhMKRS9O-yq-ocYM2T77y3wA_5JSeqZ8/view\"\n        ]\n    }\n}"
+				},
+				{
+					"name": "Bad request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"generate_reportd\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "67"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"43-Tec0Vcs+1uJNdNShk7j3dFlHgmY\""
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 26 Jul 2025 23:39:39 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"statusCode\": 500,\n    \"message\": \"Tool generate_reportd not recognized\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Crear documento",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tool_name\": \"generate_document\",\r\n  \"chat\": [],\r\n  \"params\": {\r\n    \"title\": \"Propuesta de mantenimiento industrial\",\r\n    \"generalDescription\": \"El presente documento describe los servicios de mantenimiento ofrecidos.\",\r\n    \"tasks\": [\r\n      \"Inspección general de equipos\",\r\n      \"Lubricación de maquinaria\",\r\n      \"Revisión de sistemas eléctricos\"\r\n    ],\r\n    \"activities\": [\r\n      { \"title\": \"Diagnóstico de equipos\", \"hours\": 4 },\r\n      { \"title\": \"Ejecución de mantenimiento\", \"hours\": 6 }\r\n    ],\r\n    \"deliveryTime\": \"5 días hábiles\",\r\n    \"notes\": \"Este documento es solo una propuesta preliminar.\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/mcp-entry",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"mcp-entry"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Tool Generar cotizacion Copy",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"generate_document\",\r\n  \"chat\": [],\r\n  \"argumentos\": {\r\n    \"title\": \"Propuesta de mantenimiento industrial\",\r\n    \"generalDescription\": \"El presente documento describe los servicios de mantenimiento ofrecidos.\",\r\n    \"tasks\": [\r\n      \"Inspección general de equipos\",\r\n      \"Lubricación de maquinaria\",\r\n      \"Revisión de sistemas eléctricos\"\r\n    ],\r\n    \"activities\": [\r\n      { \"title\": \"Diagnóstico de equipos\", \"hours\": 4 },\r\n      { \"title\": \"Ejecución de mantenimiento\", \"hours\": 6 }\r\n    ],\r\n    \"deliveryTime\": \"5 días hábiles\",\r\n    \"notes\": \"Este documento es solo una propuesta preliminar.\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "231"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"e7-HFwz3m0YQ2/94uGPO1w27YkSfGY\""
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Jul 2025 03:36:14 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"fileId\": \"1Y5qJX8HHqK7rJTQYc-XO_t_0SNiBSUPOcxPUc3d_P-g\",\n        \"link\": \"https://docs.google.com/document/d/1Y5qJX8HHqK7rJTQYc-XO_t_0SNiBSUPOcxPUc3d_P-g/edit?usp=drivesdk\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Indexar Archivos",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree un informe técnico sobre caídas de sistema en junio\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/indexation/recent-files?folderId=1sed4WMhyfzR7_UK86vNMh7_5SkmPVpl7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"indexation",
+						"recent-files"
+					],
+					"query": [
+						{
+							"key": "folderId",
+							"value": "1sed4WMhyfzR7_UK86vNMh7_5SkmPVpl7"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
