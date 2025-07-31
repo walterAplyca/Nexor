@@ -1,5 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GdriveService } from './gdrive.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Packer, Document } from 'docx';
+import { v4 as uuidv4 } from 'uuid';
+
+
+jest.mock('fs');
+jest.mock('path');
+jest.mock('uuid', () => ({ v4: jest.fn() }));
+jest.mock('docx', () => {
+  const original = jest.requireActual('docx');
+  return {
+    ...original,
+    Packer: { toBuffer: jest.fn() },
+    Document: jest.fn().mockImplementation(() => ({})),
+    Paragraph: jest.fn(),
+    Table: jest.fn(),
+    TableRow: jest.fn(),
+    TableCell: jest.fn(),
+  };
+});
 
 jest.mock('googleapis', () => ({
   google: {
@@ -19,8 +40,17 @@ jest.mock('googleapis', () => ({
 
 describe('GdriveService', () => {
   let service: GdriveService;
+  const mockContent = {
+    title: 'Test Doc',
+    generalDescription: 'Descripción general',
+    tasks: ['Tarea 1', 'Tarea 2'],
+    activities: [{ title: 'Act 1', hours: 2 }, { title: 'Act 2', hours: 3 }],
+    deliveryTime: '2 días',
+    notes: 'Notas adicionales',
+  };
 
   beforeEach(async () => {
+    process.env.GOOGLE_DRIVE_FOLDER_ID = 'folder123';
     const module: TestingModule = await Test.createTestingModule({
       providers: [GdriveService],
     }).compile();
@@ -43,6 +73,17 @@ describe('GdriveService', () => {
         },
       } as any;
     });
+
+    // Mock de path.join
+    (path.join as jest.Mock).mockReturnValue('/tmp/temp-file.docx');
+    // Mock de uuid
+    (uuidv4 as jest.Mock).mockReturnValue('uuid-mock');
+    // Mock de Packer.toBuffer
+    (Packer.toBuffer as jest.Mock).mockResolvedValue(Buffer.from('doc-buffer'));
+    // Mock de fs
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => { });
+    (fs.createReadStream as jest.Mock).mockReturnValue('stream-mock');
+    (fs.unlinkSync as jest.Mock).mockImplementation(() => { });
   });
 
   it('should be defined', () => {
@@ -101,5 +142,58 @@ describe('GdriveService', () => {
         files: [],
       });
     });
+
+    it('crea y sube un documento correctamente y borra el archivo temporal', async () => {
+      // Mock de drive.files.create
+      const mockDriveCreate = jest.fn().mockResolvedValue({
+        data: { id: 'fileId123', webViewLink: 'https://drive.link/fileId123' },
+      });
+      // @ts-ignore
+      service.drive.files.create = mockDriveCreate;
+
+      const result = await service.createAndUploadDocument(mockContent);
+
+      // Verifica que se haya creado el documento y llamado a los métodos de fs y docx
+      expect(Packer.toBuffer).toHaveBeenCalled();
+      expect(fs.writeFileSync).toHaveBeenCalledWith('/tmp/temp-file.docx', expect.any(Buffer));
+      expect(fs.createReadStream).toHaveBeenCalledWith('/tmp/temp-file.docx');
+      expect(mockDriveCreate).toHaveBeenCalledWith(expect.objectContaining({
+        requestBody: expect.objectContaining({
+          name: 'Test Doc.docx',
+          mimeType: 'application/vnd.google-apps.document',
+          parents: ['folder123'],
+        }),
+        media: expect.objectContaining({
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          body: 'stream-mock',
+        }),
+        fields: 'id, webViewLink',
+        supportsAllDrives: true,
+      }));
+      expect(fs.unlinkSync).toHaveBeenCalledWith('/tmp/temp-file.docx');
+      expect(result).toEqual({
+        fileId: 'fileId123',
+        link: 'https://drive.link/fileId123',
+      });
+    });
+
+    it('lanza error si drive.files.create falla y borra el archivo temporal', async () => {
+      // Mock de drive.files.create que lanza error
+      const mockDriveCreate = jest.fn().mockRejectedValue(new Error('Drive error'));
+      // @ts-ignore
+      service.drive.files.create = mockDriveCreate;
+
+      await expect(service.createAndUploadDocument(mockContent)).rejects.toThrow('Drive error');
+      expect(fs.unlinkSync).toHaveBeenCalledWith('/tmp/temp-file.docx');
+    });
+
+    it('lanza error si Packer.toBuffer falla', async () => {
+      (Packer.toBuffer as jest.Mock).mockRejectedValue(new Error('Buffer error'));
+      await expect(service.createAndUploadDocument(mockContent)).rejects.toThrow('Buffer error');
+      // El método intenta borrar el archivo aunque no exista
+      expect(fs.unlinkSync).toHaveBeenCalledWith('/tmp/temp-file.docx');
+    });
   });
 });
+
+
