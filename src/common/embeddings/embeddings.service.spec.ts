@@ -123,6 +123,32 @@ describe('EmbeddingsService', () => {
       expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Archivo file2 no tiene texto legible.'));
     });
 
+    it('querySimilarChunks retorna matches del índice de Pinecone', async () => {
+      // Mock de Pinecone Index y su método query
+      const mockMatches = [
+        { id: 'vec1', score: 0.99, metadata: { fileId: '1' } },
+        { id: 'vec2', score: 0.95, metadata: { fileId: '2' } },
+      ];
+      const mockQuery = jest.fn().mockResolvedValue({ matches: mockMatches });
+      // Mockea el método Index para devolver un objeto con query mockeado
+      service['pinecone'].Index = jest.fn().mockReturnValue({ query: mockQuery });
+
+      const embedding = [0.1, 0.2, 0.3];
+      const typeFile = 'cotizacion';
+      const topK = 2;
+
+      const result = await service.querySimilarChunks(embedding, typeFile, topK);
+
+      expect(service['pinecone'].Index).toHaveBeenCalledWith(service['indexName']);
+      expect(mockQuery).toHaveBeenCalledWith({
+        vector: embedding,
+        topK,
+        includeMetadata: true,
+        filter: { typeFile },
+      });
+      expect(result).toEqual(mockMatches);
+    });
+
     it('procesa chunks y genera embeddings, inserta en Pinecone y loguea', async () => {
       // Mock para que haya texto legible
       (extractTextFromDriveFile as jest.Mock).mockResolvedValueOnce('Texto válido para chunk.');
