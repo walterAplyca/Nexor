@@ -13,8 +13,9 @@ export class McpEntryController {
         tool_name: string;
         chat: Chat[];
         argumentos: any;
+        typeFile: string;
     }) {
-        const { tool_name, chat, argumentos } = body;
+        const { tool_name, chat, argumentos, typeFile } = body;
 
         let data: any = null;
         let message = 'Tool executed successfully';
@@ -23,10 +24,10 @@ export class McpEntryController {
         try {
             switch (tool_name) {
                 case 'consult_document':
-                    data = await this.toolsService.consultDocument(chat);
+                    data = await this.toolsService.consultDocument(chat, typeFile);
                     break;
                 case 'generate_report':
-                    data = await this.toolsService.generateReport(chat);
+                    data = await this.toolsService.generateReport(chat, typeFile);
                     break;
                 case 'generate_document':
                     data = await this.toolsService.generateDocument(argumentos);

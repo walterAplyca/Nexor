@@ -25,10 +25,10 @@ export class ToolsService {
      * @param messages - Historial de mensajes del chat.
      * @returns Un objeto con el mensaje de éxito y los datos generados por el modelo.
      */
-    async consultDocument(messages: Chat[]) {
+    async consultDocument(messages: Chat[], typeFile: string = 'incidencia') {
 
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 4);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 4, typeFile);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -52,9 +52,9 @@ export class ToolsService {
      * @returns Un objeto con el mensaje de éxito y el reporte generado por el modelo.
     **/
 
-    async generateReport(messages: Chat[]) {
+    async generateReport(messages: Chat[], typeFile: string = 'reporte_horas') {
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 5);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 5, typeFile);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -108,8 +108,13 @@ export class ToolsService {
                             required: ['role', 'content'],
                         },
                     },
+                    typeFile: {
+                        type: 'string',
+                        description: 'Tipo de archivo del documento consultado, por ejemplo: "incidencia", "reporte_horas", "cotizacion"',
+                        enum: ['incidencia', 'reporte_horas', 'cotizacion'],
+                    },
                 },
-                required: ['chat'],
+                required: ['chat', 'typeFile'],
             },
         };
     }
@@ -189,12 +194,8 @@ export class ToolsService {
      * @param messages - Historial de mensajes del chat.
      * @returns Un objeto con cleanedHistory, typeFile y context.
      */
-    private async prepareContext(messages: Chat[], topK: number = 5) {
+    private async prepareContext(messages: Chat[], topK: number = 5, typeFile: string = 'incidencia') {
         const cleanedHistory = truncateMessages(messages);
-        const typeFile = await this.embeddingsService.getTypeFileDocument(
-            cleanedHistory.map(m => m.content).join('\n'),
-            'query'
-        );
         console.log('Type File:', typeFile);
         const context = await this.getChunkChat(messages, typeFile, topK);
         return { cleanedHistory, typeFile, context };

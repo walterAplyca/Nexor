@@ -56,7 +56,7 @@ export class EmbeddingsService {
         }
 
 
-        const typeFile = await this.getTypeFileDocument(text, 'document');
+        const typeFile = await this.getTypeFileDocument(text);
 
         // Dividir el texto en fragmentos si es necesario
         const chunks = this.splitTextIntoChunks(text, 1000);
@@ -244,16 +244,14 @@ export class EmbeddingsService {
         return response.choices[0].message;
     }
 
-    async getTypeFileDocument(content: string, contexto: 'document' | 'query'): Promise<string> {
-        const prompt = contexto === 'document'
-            ? `
+    async getTypeFileDocument(content: string): Promise<string> {
+        const prompt = `
                 Analiza el siguiente texto extraído de un documento y determina cuál de los siguientes tipos representa mejor su contenido:
 
                 1. Informe de incidencia
                 2. Reporte de horas
                 3. Cotización
         
-
                 Texto del documento:
                 ---
                 ${content.slice(0, 2000)}
@@ -261,25 +259,10 @@ export class EmbeddingsService {
 
                 Responde únicamente con una de las siguientes palabras en minúsculas: "incidencia", "reporte_horas", "cotizacion", "otro".
                 `
-            : `
-                Analiza la siguiente pregunta o solicitud de un usuario y clasifícala en una de estas categorías:
-
-                1. Quiere información sobre un informe de incidencia
-                2. Quiere ver un reporte de horas
-                3. Está pidiendo una cotización
-               
-
-                Consulta del usuario:
-                ---
-                "${content}"
-                ---
-
-                Responde únicamente con uno de estos valores: "incidencia", "reporte_horas", "cotizacion", "otro".
-                `;
 
 
         const messages: Array<{ role: 'system' | 'user' | 'assistant', content: string }> = [
-            { role: 'system', content: 'Eres un clasificador inteligente de documentos y preguntas.' },
+            { role: 'system', content: 'Eres un clasificador inteligente de documentos' },
             { role: 'user', content: prompt }
         ];
         const respuesta = await this.chat(messages, 0);
