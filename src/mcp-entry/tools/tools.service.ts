@@ -85,9 +85,10 @@ export class ToolsService {
     }
 
 
-    private toolFormat(nameTool: string, description: string) {
+    private toolFormat(nameTool: string, title: string, description: string) {
         return {
             name: nameTool,
+            title: title,
             description: description,
             parameters: {
                 type: 'object',
@@ -121,37 +122,12 @@ export class ToolsService {
 
     getAvailableTools() {
         return [
-            this.toolFormat('consult_document', 'Consulta un documento basado en el historial de chat y el contexto relevante'),
-            this.toolFormat('generate_report', 'Genera un reporte basado en el historial de chat y el contexto relevante'),
+            this.toolFormat('consult_document_existing', '', 'Consulta un documento basado en el historial de chat y el contexto relevante'),
+            this.toolFormat('draft_quotation', 'Redactar cotización preliminar', 'Genera un texto en formato Markdown con la estructura de una cotización, basado en el historial del chat donde el usuario describe requerimientos, necesidades o servicios esperados. No guarda archivos ni consulta documentos previos.'),
             {
-                name: 'generate_report',
-                description: 'Genera un informe o reporte a partir de un chat tipo conversación',
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        chat: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    role: {
-                                        type: 'string',
-                                        enum: ['system', 'user', 'assistant'],
-                                    },
-                                    content: {
-                                        type: 'string',
-                                    },
-                                },
-                                required: ['role', 'content'],
-                            },
-                        },
-                    },
-                    required: ['chat'],
-                },
-            },
-            {
-                name: 'generate_document',
-                description: 'Genera un documento en Google Drive a partir de una estructura con título, tareas, actividades, etc.',
+                name: 'generate_quotation_file',
+                title: 'Generar cotización en Word desde texto',
+                description: "Recibe un texto en formato Markdown que representa una cotización con la siguiente estructura: título, lista de tareas, tabla de actividades (Producto, Precio, Marca) y comentario final. Convierte esa información en una estructura JSON detallada con título, descripción, tareas, actividades, tiempo de entrega y notas, y genera un archivo Word profesional que se guarda automáticamente en Google Drive.",
                 parameters: {
                     type: 'object',
                     properties: {

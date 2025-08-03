@@ -23,13 +23,13 @@ export class McpEntryController {
 
         try {
             switch (tool_name) {
-                case 'consult_document':
+                case 'consult_document_existing':
                     data = await this.toolsService.consultDocument(chat, typeFile);
                     break;
-                case 'generate_report':
+                case 'draft_quotation':
                     data = await this.toolsService.generateReport(chat, typeFile);
                     break;
-                case 'generate_document':
+                case 'generate_quotation_file':
                     data = await this.toolsService.generateDocument(argumentos);
                     break;
                 default:
