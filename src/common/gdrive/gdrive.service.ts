@@ -41,8 +41,8 @@ export class GdriveService {
 
         const mimeFilter = mimeTypes.map(m => `mimeType='${m}'`).join(' or ');
 
-        const query = `'${folderId}' in parents and (${mimeFilter}) and modifiedTime > '${last24h}' and trashed = false`;
-
+        // const query = `'${folderId}' in parents and (${mimeFilter}) and modifiedTime > '${last24h}' and trashed = false`;
+        const query = `'${folderId}' in parents and (${mimeFilter}) and trashed = false`;
         const res = await this.drive.files.list({
             q: query,
             fields: 'files(id, name, modifiedTime, mimeType)',

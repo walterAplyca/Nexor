@@ -94,7 +94,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"tool_name\": \"consult_document\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Expliqueme que sucedió en el incidente de Mobil Lubricantes y como se atendió\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}\r\n",
+					"raw": "{\r\n  \"tool_name\": \"consult_document_existing\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Detalle el incidente sucedido con Mobil Lubricantes, como sucedio\" \r\n    }\r\n  ],\r\n  \"typeFile\": \"incidencia\",\r\n  \"argumentos\": {}\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -195,7 +195,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"tool_name\": \"consult_document\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Expliqueme que sucedió en el incidente de Mobil Lubricantes y como se atendió\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}\r\n",
+							"raw": "{\r\n  \"tool_name\": \"consult_document_existing\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Sucedió algún error con la VPN de intranet?\" \r\n    }\r\n  ],\r\n  \"typeFile\": \"incidencia\",\r\n  \"argumentos\": {}\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -216,7 +216,7 @@
 					},
 					"status": "Created",
 					"code": 201,
-					"_postman_previewlanguage": "json",
+					"_postman_previewlanguage": null,
 					"header": [
 						{
 							"key": "X-Powered-By",
@@ -228,15 +228,15 @@
 						},
 						{
 							"key": "Content-Length",
-							"value": "1781"
+							"value": "1574"
 						},
 						{
 							"key": "ETag",
-							"value": "W/\"6f5-hjaCmMHo4+3GjyBZ4ZWW6YrPQH0\""
+							"value": "W/\"626-VkkmbnlvmJEbCX2lIbPVz9JzcJk\""
 						},
 						{
 							"key": "Date",
-							"value": "Sat, 26 Jul 2025 22:20:23 GMT"
+							"value": "Thu, 07 Aug 2025 23:35:49 GMT"
 						},
 						{
 							"key": "Connection",
@@ -248,7 +248,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"El incidente de Mobil Lubricantes ocurrió el 9 de abril cuando la página de inicio de su sitio web no se renderizaba correctamente debido a un conflicto en el sistema de caché de la aplicación web desarrollada en Next.js. El problema se identificó y se atendió activando el Comité Técnico de Seguridad de Aplyca, que incluía diversos roles desde un gerente de incidentes hasta un documentador.\\n\\nEl equipo técnico determinó que la causa principal fue un conflicto en el sistema de caché de la aplicación web, causado por la ausencia de persistencia del caché entre revalidaciones. Para mitigar el problema, se revirtieron los cambios y se limpiaron las cachés del sistema, restaurando la estructura original de las URLs en inglés. El incidente se resolvió en aproximadamente una hora desde su detección.\\n\\nPosteriormente, se realizó una revisión exhaustiva del código y se generó un ticket de soporte para el fabricante del CMS Ibexa. La causa raíz del incidente se identificó y se realizaron ajustes en el entorno de QA, garantizando que el error ya no se presentaba. Finalmente, el ajuste para la mitigación del incidente se desplegó en el entorno productivo y se comunicó al cliente.\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            \"https://drive.google.com/file/d/15MzHGIZjd3e7vqYLXz0y04XSWzYysBEU/view\",\n            \"https://drive.google.com/file/d/1a9JWgNDjUAhruoqAzrq8CiOrJwnYGaYv/view\",\n            \"https://drive.google.com/file/d/15MzHGIZjd3e7vqYLXz0y04XSWzYysBEU/view\",\n            \"https://drive.google.com/file/d/1fhMKRS9O-yq-ocYM2T77y3wA_5JSeqZ8/view\",\n            \"https://drive.google.com/file/d/1wkQP32MOz_t-PBjYoPOoNl5KWj1VZ4by/view\"\n        ]\n    }\n}"
+					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"Se han realizado una serie de pruebas en el entorno de QA y en el sitio de producción utilizando una VPN de intranet. El error inicial era que el sitio pedía el inicio de sesión de Microsoft debido a que la IP del dispositivo no estaba registrada en la lista de IPs de confianza. Para solucionar este problema, se registró la IP de la VPN en la lista de IPs de confianza, lo cual permitió el acceso al sitio sin necesidad de iniciar sesión con Microsoft.\\n\\nAdemás, se comprobó que el sitio funciona correctamente cuando se utiliza una VPN que enmascara la IP pública del dispositivo. Se registró una respuesta HTTP 200 en los registros, lo que indica que el acceso fue exitoso. Sin embargo, si la IP de la VPN no está en la lista de IPs de confianza, el sistema rechaza la conexión y solicita el inicio de sesión de Microsoft. Por lo tanto, la VPN de intranet debería funcionar correctamente siempre y cuando la IP de la VPN esté registrada en la lista de IPs de confianza.\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            {\n                \"fileName\": \"Inicidente_login_VPN_Intranet.pdf\",\n                \"url\": \"https://drive.google.com/file/d/1CZWKymQcBk_FiUKX6Uvuj0UtFRh-AmaK/view\"\n            },\n            {\n                \"fileName\": \"Inicidente_login_VPN_Intranet.pdf\",\n                \"url\": \"https://drive.google.com/file/d/1CZWKymQcBk_FiUKX6Uvuj0UtFRh-AmaK/view\"\n            },\n            {\n                \"fileName\": \"Inicidente_login_VPN_Intranet.pdf\",\n                \"url\": \"https://drive.google.com/file/d/1CZWKymQcBk_FiUKX6Uvuj0UtFRh-AmaK/view\"\n            }\n        ]\n    }\n}"
 				}
 			]
 		},
@@ -265,7 +265,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+					"raw": "{\r\n  \"tool_name\": \"draft_quotation\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -285,74 +285,6 @@
 				}
 			},
 			"response": [
-				{
-					"name": "Success response",
-					"originalRequest": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/mcp-entry",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"mcp-entry"
-							]
-						}
-					},
-					"status": "Created",
-					"code": 201,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "X-Powered-By",
-							"value": "Express"
-						},
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Content-Length",
-							"value": "1548"
-						},
-						{
-							"key": "ETag",
-							"value": "W/\"60c-qP2XDTvwX3DiCynWi+omCmyifXo\""
-						},
-						{
-							"key": "Date",
-							"value": "Sat, 26 Jul 2025 23:36:09 GMT"
-						},
-						{
-							"key": "Connection",
-							"value": "keep-alive"
-						},
-						{
-							"key": "Keep-Alive",
-							"value": "timeout=5"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"Cotización para Implementación de Funcionalidades Web\\n\\n| Producto/Servicio | Horas | Precio por Hora | Total |\\n|---|---|---|---|\\n| Opción para descargar archivos con histórico de participantes | 5 | $100 | $500 |\\n| Integración de widget de Instagram | 6 | $100 | $600 |\\n| Desarrollo de módulo de ubicaciones con mapa interactivo | 24 | $100 | $2400 |\\n| **Total** | 35 |  | **$3500** |\\n\\n*Todos los precios están en USD.\\n\\nComentarios Finales:\\n\\nPor favor, tenga en cuenta que esta cotización es una estimación basada en los requerimientos proporcionados. Cualquier cambio en los requerimientos puede afectar el costo final y el tiempo de entrega. Esta cotización es válida por 30 días a partir de la fecha de emisión.\\n\\nSi tiene alguna pregunta o desea discutir más detalles sobre esta cotización, no dude en ponerse en contacto con nosotros. Gracias por considerar nuestros servicios para su proyecto. Esperamos tener la oportunidad de trabajar con usted.\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1HyK2r2sH3g0zDff6B6ExG99SWqGmYEPa/view\",\n            \"https://drive.google.com/file/d/1W0hVRT7ZfLHvp2zd6J_XEUqzQCBES1R6/view\",\n            \"https://drive.google.com/file/d/1fhMKRS9O-yq-ocYM2T77y3wA_5JSeqZ8/view\"\n        ]\n    }\n}"
-				},
 				{
 					"name": "Bad request",
 					"originalRequest": {
@@ -420,6 +352,74 @@
 					],
 					"cookie": [],
 					"body": "{\n    \"statusCode\": 500,\n    \"message\": \"Tool generate_reportd not recognized\"\n}"
+				},
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tool_name\": \"draft_quotation\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1514"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"5ea-6vWtVzyAdbxuNpQVOuQ6V558ip4\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 07 Aug 2025 23:39:38 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"success\",\n    \"message\": \"Tool executed successfully\",\n    \"data\": {\n        \"message\": \"Respuesta generada correctamente\",\n        \"data\": {\n            \"role\": \"assistant\",\n            \"content\": \"Cotización de servicios de desarrollo web\\nFecha: 25 de Octubre, 2025.\\n\\n|   Producto/Servicio   |   Precio   |   Marca   |\\n|-----------------------|------------|-----------|\\n|Implementación de opción para descargar archivos con histórico de participantes | $1,500 | Aplyca |\\n|Integración de widget de Instagram en la página principal | $700 | Aplyca |\\n|Desarrollo de módulo de ubicaciones con mapa interactivo | $2,000 | Aplyca |\\n|Total | $4,200 | |\\n\\nLos precios incluyen la implementación y prueba de los servicios mencionados. Cada uno de estos servicios es importante para mejorar la interacción del usuario con la web y ofrecer una experiencia más completa y personalizada.\\n\\nEsperamos que esta cotización cumpla con sus expectativas. Si tiene alguna pregunta o desea discutir más detalles, no dude en ponerse en contacto con nosotros.\\n\\nAtentamente,\\n\\nEdwin Vallejo\\nAplyca\",\n            \"refusal\": null,\n            \"annotations\": []\n        },\n        \"references\": [\n            {\n                \"fileName\": \"Informe ejecución GEB Mayo  2025_05.docx\",\n                \"url\": \"https://drive.google.com/file/d/1zaI-BfulnLtxN7pK1m6YKGFaY82WgFOY/view\"\n            },\n            {\n                \"fileName\": \"_Informe ejecución GEB Junio  2025_06.docx\",\n                \"url\": \"https://drive.google.com/file/d/1gBsVAcXfWdEpDmZsByG_TFzQbbNSRRWQ/view\"\n            },\n            {\n                \"fileName\": \"Informe ejecución GEB Julio  2025_07.docx\",\n                \"url\": \"https://drive.google.com/file/d/11Xi58QFol4Yy324XjC6J203KBrBdWgow/view\"\n            }\n        ]\n    }\n}"
 				}
 			]
 		},
@@ -545,7 +545,7 @@
 					"raw": "{\r\n  \"tool_name\": \"generate_report\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree un informe técnico sobre caídas de sistema en junio\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}"
 				},
 				"url": {
-					"raw": "http://localhost:3000/indexation/recent-files?folderId=1sed4WMhyfzR7_UK86vNMh7_5SkmPVpl7",
+					"raw": "http://localhost:3000/indexation/recent-files?folderId=1wOucTqXSMi8XKcfQMXMbEGdBHIyspAgS",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -558,7 +558,7 @@
 					"query": [
 						{
 							"key": "folderId",
-							"value": "1sed4WMhyfzR7_UK86vNMh7_5SkmPVpl7"
+							"value": "1wOucTqXSMi8XKcfQMXMbEGdBHIyspAgS"
 						}
 					]
 				}

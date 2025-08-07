@@ -21,6 +21,9 @@
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.21",
+    "@langchain/community": "^0.3.50",
+    "@langchain/core": "^0.3.67",
+    "@langchain/pinecone": "^0.2.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -30,6 +33,7 @@
     "@supabase/supabase-js": "^2.52.0",
     "docx": "^9.5.1",
     "googleapis": "^153.0.0",
+    "langchain": "^0.3.30",
     "mammoth": "^1.9.1",
     "openai": "^5.10.1",
     "pdf-parse": "^1.1.1",

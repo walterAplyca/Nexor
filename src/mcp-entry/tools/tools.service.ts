@@ -28,18 +28,16 @@ export class ToolsService {
     async consultDocument(messages: Chat[], typeFile: string = 'incidencia') {
 
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 4, typeFile);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 3, typeFile);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
                 { role: 'system', content: `Redacte un resumen ejecutivo de la información consultada` }
             ];
-            console.log('Prompt:', prompt);
-            console.log('Context:', context);
             return {
                 message: 'Respuesta generada correctamente',
                 data: await this.embeddingsService.chat(prompt, 0.7),
-                references: context.urls.length > 0 ? context.urls : undefined,
+                references: context.files.length > 0 ? context.files : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -64,7 +62,7 @@ export class ToolsService {
             return {
                 message: 'Respuesta generada correctamente',
                 data: await this.embeddingsService.chat(prompt, 0.7),
-                references: context.urls.length > 0 ? context.urls : undefined,
+                references: context.files.length > 0 ? context.files : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -172,7 +170,6 @@ export class ToolsService {
      */
     private async prepareContext(messages: Chat[], topK: number = 5, typeFile: string = 'incidencia') {
         const cleanedHistory = truncateMessages(messages);
-        console.log('Type File:', typeFile);
         const context = await this.getChunkChat(messages, typeFile, topK);
         return { cleanedHistory, typeFile, context };
     }
@@ -180,18 +177,24 @@ export class ToolsService {
 
     private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5) {
         const lastUserMessage = this.getLastUserMessage(messages);
-        const embedding = await this.embeddingsService.createEmbedding(lastUserMessage?.content ?? '');
-        const embeddingRes = embedding.data[0].embedding;
-        const chunks = await this.embeddingsService.querySimilarChunks(embeddingRes, typeFile, topK);
-        const context = chunks.map(c => c.metadata?.text).join('\n\n');
-        console.log('Context in Chunks:', context);
-        const urls = chunks
-            .map(c => c.metadata?.url) // <- Asegúrate de que sea `.url` (no `.urls`)
-            .filter((url): url is string => typeof url === 'string'); // Solo strings válidos
+        const chunks = await this.embeddingsService.querySimilarChunks(lastUserMessage?.content ?? '', typeFile, topK);
+        const context = chunks.map(c => c.metadata?.chunk).join('\n\n');
+        const files = chunks
+            .map(c => {
+                const fileName = c.metadata?.fileName;
+                const url = c.metadata?.url;
+
+                if (typeof fileName === 'string' && typeof url === 'string') {
+                    return { fileName, url };
+                }
+
+                return null;
+            })
+            .filter((item): item is { fileName: string; url: string } => item !== null);
 
         return {
             context,
-            urls
+            files
         };
     }
 
