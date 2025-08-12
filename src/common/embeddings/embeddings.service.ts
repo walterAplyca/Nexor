@@ -104,6 +104,7 @@ export class EmbeddingsService {
         query: string,
         typeFile?: string, // Por ejemplo: 'cotizacion' | 'reporte' | 'incidencia'
         k: number = 4,
+        group: boolean = false,
     ) {
         const index = this.pinecone.Index(this.indexName);
         const vectorStore = await PineconeStore.fromExistingIndex(
@@ -114,7 +115,39 @@ export class EmbeddingsService {
             ? { typeFile: typeFile }
             : undefined;
         const results = await (vectorStore as any).similaritySearch(query, k, filter);
-        return results;
+
+        if (!group) return results;
+
+
+        type ChunkDoc = {
+            pageContent: string;
+            metadata: {
+                fileId: string;
+                chunkIndex?: number;
+                [key: string]: any;
+            };
+            score?: number;
+        };
+
+
+        // Agrupa por fileId
+        const groupedByFileId: Record<string, ChunkDoc[]> = results.reduce((acc, doc) => {
+            const fileId = doc.metadata?.fileId;
+            if (!fileId) return acc;
+            if (!acc[fileId]) acc[fileId] = [];
+            acc[fileId].push(doc);
+            return acc;
+        }, {} as Record<string, ChunkDoc[]>);
+
+
+        // Selecciona el grupo con mayor relevancia (por score si está disponible)
+        const bestGroup = Object.values(groupedByFileId).sort((a, b) => {
+            const scoreA = a.reduce((sum, doc) => sum + (doc.score ?? 0), 0);
+            const scoreB = b.reduce((sum, doc) => sum + (doc.score ?? 0), 0);
+            return scoreB - scoreA;
+        })[0];
+
+        return bestGroup;
     }
 
 

@@ -28,7 +28,7 @@ export class ToolsService {
     async consultDocument(messages: Chat[], typeFile: string = 'incidencia') {
 
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 3, typeFile);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 6, typeFile, true);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -52,7 +52,7 @@ export class ToolsService {
 
     async generateReport(messages: Chat[], typeFile: string = 'reporte_horas') {
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 5, typeFile);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 5, typeFile, false);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
@@ -61,7 +61,7 @@ export class ToolsService {
 
             return {
                 message: 'Respuesta generada correctamente',
-                data: await this.embeddingsService.chat(prompt, 0.7),
+                data: await this.embeddingsService.chat(prompt, 0.5),
                 references: context.files.length > 0 ? context.files : undefined,
             };
         } catch (error) {
@@ -168,16 +168,16 @@ export class ToolsService {
      * @param messages - Historial de mensajes del chat.
      * @returns Un objeto con cleanedHistory, typeFile y context.
      */
-    private async prepareContext(messages: Chat[], topK: number = 5, typeFile: string = 'incidencia') {
+    private async prepareContext(messages: Chat[], topK: number = 5, typeFile: string = 'incidencia', group: boolean = false) {
         const cleanedHistory = truncateMessages(messages);
-        const context = await this.getChunkChat(messages, typeFile, topK);
+        const context = await this.getChunkChat(messages, typeFile, topK, group);
         return { cleanedHistory, typeFile, context };
     }
 
 
-    private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5) {
+    private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5, group: boolean = false) {
         const lastUserMessage = this.getLastUserMessage(messages);
-        const chunks = await this.embeddingsService.querySimilarChunks(lastUserMessage?.content ?? '', typeFile, topK);
+        const chunks = await this.embeddingsService.querySimilarChunks(lastUserMessage?.content ?? '', typeFile, topK, group);
         const context = chunks.map(c => c.metadata?.chunk).join('\n\n');
         const files = chunks
             .map(c => {
