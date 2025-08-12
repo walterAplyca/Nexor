@@ -50,13 +50,13 @@ export class ToolsService {
      * @returns Un objeto con el mensaje de éxito y el reporte generado por el modelo.
     **/
 
-    async generateReport(messages: Chat[], typeFile: string = 'reporte_horas') {
+    async generateReport(messages: Chat[], typeFile: string = 'cotización') {
         try {
             const { cleanedHistory, context } = await this.prepareContext(messages, 5, typeFile, false);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
-                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización con estructura clara:\n- Título\n- Tabla con Producto, Precio, Marca\n- Comentario final` }
+                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización en formato markdown con estructura clara:\n- Título\n - Texto descriptivo de cada una de las tareas a realizar\n- Tabla con Producto, Número de horas\n- Comentario final` }
             ];
 
             return {
