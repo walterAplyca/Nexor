@@ -1,14 +1,18 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { BusinessLogicException } from '../common/errors/business-errors';
 import { ToolsService } from './tools/tools.service';
 import { Chat } from '../common/interfaces/chat.interface';
+
 
 
 @Controller('mcp-entry')
 export class McpEntryController {
     constructor(private readonly toolsService: ToolsService) { }
 
+    @UseGuards(JwtAuthGuard)
     @Post()
+    @HttpCode(201)
     async handleTool(@Body() body: {
         tool_name: string;
         chat: Chat[];

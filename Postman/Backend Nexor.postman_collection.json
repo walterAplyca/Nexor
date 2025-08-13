@@ -83,7 +83,29 @@
 		},
 		{
 			"name": "Tool Consult Document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -94,7 +116,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"tool_name\": \"consult_document_existing\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Detalle el incidente sucedido con Mobil Lubricantes, como sucedio\" \r\n    }\r\n  ],\r\n  \"typeFile\": \"incidencia\",\r\n  \"argumentos\": {}\r\n}\r\n",
+					"raw": "{\r\n  \"tool_name\": \"consult_document_existing\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cual tarea tomo más tiempo en el 2025?\" \r\n    }\r\n  ],\r\n  \"typeFile\": \"reporte_horas\",\r\n  \"argumentos\": {}\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -115,7 +137,7 @@
 			},
 			"response": [
 				{
-					"name": "New Request",
+					"name": "Bad Request",
 					"originalRequest": {
 						"method": "POST",
 						"header": [
@@ -255,6 +277,16 @@
 		{
 			"name": "Tool Generar cotizacion",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -265,7 +297,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"tool_name\": \"draft_quotation\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"argumentos\": {}\r\n}",
+					"raw": "{\r\n  \"tool_name\": \"draft_quotation\",\r\n  \"chat\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Cree una cotización con los siguientes requerimientos : Implementación de opción para descargar archivos con histórico de participantes. Integración de widget de Instagram en la página principal. Desarrollo de módulo de ubicaciones con mapa interactivo\"\r\n    }\r\n  ],\r\n  \"typeFile\": \"cotizacion\",\r\n  \"argumentos\": {}\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -426,6 +458,16 @@
 		{
 			"name": "Crear documento",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -532,6 +574,16 @@
 				"disableBodyPruning": true
 			},
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -560,6 +612,58 @@
 							"key": "folderId",
 							"value": "1wOucTqXSMi8XKcfQMXMbEGdBHIyspAgS"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = pm.response.json()\r",
+							"pm.globals.set(\"token\", data.token);\r",
+							"\r",
+							"pm.test(\"Status code is 201\", function () {\r",
+							"   pm.response.to.have.status(201);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"user\",\r\n    \"password\":\"****\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/user/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"user",
+						"login"
 					]
 				}
 			},
