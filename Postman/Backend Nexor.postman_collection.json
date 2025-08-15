@@ -668,6 +668,81 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/mcp-entry/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"mcp-entry",
+						"health"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/mcp-entry/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"mcp-entry",
+								"health"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "54"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"36-qrRk6cLaI146f2Pp+8qK3LQTpAs\""
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 15 Aug 2025 02:00:46 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"ok\",\n    \"timestamp\": \"2025-08-15T02:00:46.177Z\"\n}"
+				}
+			]
 		}
 	]
 }

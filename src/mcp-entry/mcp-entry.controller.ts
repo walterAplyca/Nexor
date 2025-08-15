@@ -51,4 +51,13 @@ export class McpEntryController {
         return this.toolsService.getAvailableTools();
     }
 
+
+    @Get('health')
+    check() {
+        return {
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+        };
+    }
+
 }

@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      ignoreEnvFile: true,
     }),
     CommonModule,
     IndexationModule,
