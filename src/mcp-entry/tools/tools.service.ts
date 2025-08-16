@@ -56,7 +56,7 @@ export class ToolsService {
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
-                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización en formato markdown con estructura clara:\n- Título\n - Texto descriptivo de cada una de las tareas a realizar\n- Tabla con Producto, Número de horas\n- Comentario final` }
+                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización en formato markdown con estructura clara, sin agregar valores de precios:\n- Título\n - Texto descriptivo de cada una de las tareas a realizar\n- Tabla con Producto, Número de horas\n- Comentario final` }
             ];
 
             return {
@@ -125,37 +125,22 @@ export class ToolsService {
             {
                 name: 'generate_quotation_file',
                 title: 'Generar cotización en Word desde texto',
-                description: "Recibe un texto en formato Markdown que representa una cotización con la siguiente estructura: título, lista de tareas, tabla de actividades (Producto, Precio, Marca) y comentario final. Convierte esa información en una estructura JSON detallada con título, descripción, tareas, actividades, tiempo de entrega y notas, y genera un archivo Word profesional que se guarda automáticamente en Google Drive.",
+                description: "Recibe un texto en formato Markdown que representa una cotización",
                 parameters: {
                     type: 'object',
                     properties: {
-                        title: { type: 'string' },
-                        generalDescription: { type: 'string' },
-                        tasks: {
-                            type: 'array',
-                            items: { type: 'string' },
+                        title: {
+                            type: 'string',
+                            description: 'Título de la cotización para crear el documento'
                         },
-                        activities: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    title: { type: 'string' },
-                                    hours: { type: 'number' },
-                                },
-                                required: ['title', 'hours'],
-                            },
-                        },
-                        deliveryTime: { type: 'string' },
-                        notes: { type: 'string' },
+                        content: {
+                            type: 'string',
+                            description: 'Contenido de la cotización en formato Markdown para generar un documento de Word.',
+                        }
                     },
                     required: [
                         'title',
-                        'generalDescription',
-                        'tasks',
-                        'activities',
-                        'deliveryTime',
-                        'notes',
+                        'content'
                     ],
                 },
             },
