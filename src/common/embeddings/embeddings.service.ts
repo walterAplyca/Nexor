@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { drive_v3 } from 'googleapis';
 import OpenAI from 'openai';
-import { Pinecone, PineconeRecord } from '@pinecone-database/pinecone';
+import { Pinecone } from '@pinecone-database/pinecone';
 import { GdriveService } from '../gdrive/gdrive.service';
 import { extractTextFromDriveFile } from './utils/extract-text.util';
 
+/** Nuevo Lanchaing */
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { PineconeStore } from "@langchain/pinecone";
+import { Document } from 'langchain/document';
+
+/** Nuevo Lanchaing */
 
 
 
@@ -24,6 +31,20 @@ export class EmbeddingsService {
     private readonly openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     private readonly logger = new Logger(EmbeddingsService.name);
 
+    /** Nuevo Lanchaing */
+    private readonly splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+    });
+
+    private readonly embedding = new OpenAIEmbeddings({
+        modelName: 'text-embedding-3-small',
+        openAIApiKey: process.env.OPENAI_API_KEY,
+    });
+    /** Nuevo Lanchaing */
+
+
+
     constructor() { }
 
     async indexByFileId(fileId: string) {
@@ -35,11 +56,9 @@ export class EmbeddingsService {
             }
 
             for (const file of response_drive.files) {
-                console.log(file);
                 await this.processFile(file);
-
-
             }
+
 
         } catch (error) {
             console.error('Error obteniendo metadatos del archivo:', error);
@@ -48,171 +67,30 @@ export class EmbeddingsService {
     }
 
 
-    async processFile(file: drive_v3.Schema$File): Promise<void> {
+    async processFile(file: drive_v3.Schema$File) {
         const text = await extractTextFromDriveFile(file.id!, file.mimeType!);
         if (!text) {
             this.logger.warn(`Archivo ${file.name} no tiene texto legible.`);
             return;
         }
+        const typeFile = await this.getTypeFileDocument(text);
+        const chunks = await this.splitIntoChunks(text, {
+            fileId: file.id!,
+            fileName: file.name!,
+            mimeType: file.mimeType!,
+            url: `https://drive.google.com/file/d/${file.id}/view`,
+            sourceType: 'google_drive',
+            typeFile: typeFile,
+            createdAt: new Date().toISOString(),
+        });
 
-
-        const typeFile = await this.getTypeFileDocument(text, 'document');
-
-        // Dividir el texto en fragmentos si es necesario
-        const chunks = this.splitTextIntoChunks(text, 1000);
         if (chunks.length === 0) {
             this.logger.warn(`Archivo ${file.name} no tiene texto legible después de dividir.`);
             return;
         }
 
-        const vectors: PineconeRecord<Record<string, string | number | boolean>>[] = [];
-        // Procesar cada fragmento de texto
-        for (let i = 0; i < chunks.length; i++) {
-            const chunk = chunks[i]?.trim();
-            if (!chunk) continue;
-            const chunkId = `${file.id!}-chunk-${i}`;
-
-            try {
-                const embeddingRes = await this.createEmbedding(chunk);
-                if (!embeddingRes.data.length || !embeddingRes.data[0]?.embedding) {
-                    this.logger.warn(`No se pudo generar embedding para chunk ${chunkId}`);
-                    continue;
-                }
-                const embedding = embeddingRes.data[0].embedding;
-                vectors.push({
-                    id: chunkId,
-                    values: embedding,
-                    metadata: {
-                        fileId: file.id!,
-                        fileName: file.name!,
-                        chunkIndex: i,
-                        text: chunk,
-                        mimeType: file.mimeType!,
-                        createdAt: new Date().toISOString(),
-                        url: `https://drive.google.com/file/d/${file.id}/view`,
-                        sourceType: 'google_drive',
-                        typeFile: typeFile,
-                    },
-                });
-                this.logger.log(`Embeddings generados para ${file.name}`);
-            } catch (error) {
-                this.logger.error(`Error al procesar chunk ${chunkId}: ${error.message}`);
-            }
-        }
-
-        // Batch insert all vectors
-        if (vectors.length > 0) {
-            try {
-                await this.index.upsert(vectors);
-                this.logger.log(`Se indexaron ${vectors.length} embeddings para ${file.name}`);
-            } catch (err) {
-                this.logger.error(`Error al insertar en Pinecone: ${err.message}`);
-            }
-        } else {
-            this.logger.warn(`No se insertaron vectores para ${file.name}`);
-        }
-
+        return await this.storeInPinecone(chunks);
     }
-
-
-    /**
-     * Divide un texto largo en fragmentos (chunks) de tamaño máximo especificado.
-     * 
-     * El texto se separa primero por párrafos. Si un párrafo es demasiado largo,
-     * se divide en oraciones para asegurar que ningún fragmento supere el límite.
-     * Esto es útil para procesar textos extensos en partes manejables, por ejemplo,
-     * al generar embeddings o enviar datos a APIs con límites de tamaño.
-     * 
-     * @param text Texto completo a dividir.
-     * @param maxChunkLength Longitud máxima permitida para cada fragmento (por defecto 1000 caracteres).
-     * @returns Un arreglo de fragmentos de texto.
-     */
-    splitTextIntoChunks(text: string, maxChunkLength: number = 1000): string[] {
-        const paragraphs = text.split(/\n\s*\n/);
-        const chunks: string[] = [];
-        let currentChunk = '';
-
-        for (const paragraph of paragraphs) {
-            const trimmed = paragraph.trim();
-            if (!trimmed) continue;
-
-            if (this.canAddToChunk(currentChunk, trimmed, maxChunkLength)) {
-                currentChunk = this.addToChunk(currentChunk, trimmed);
-            } else {
-                if (currentChunk) chunks.push(currentChunk.trim());
-                this.processParagraph(trimmed, maxChunkLength, chunks);
-                currentChunk = '';
-            }
-        }
-
-        if (currentChunk) chunks.push(currentChunk.trim());
-        return chunks;
-    }
-
-    /**
-     * Verifica si se puede agregar un texto al fragmento actual sin exceder el tamaño máximo.
-     * 
-     * @param currentChunk Fragmento actual.
-     * @param text Texto a agregar.
-     * @param maxChunkLength Longitud máxima permitida.
-     * @returns true si se puede agregar, false si excede el límite.
-     */
-    private canAddToChunk(currentChunk: string, text: string, maxChunkLength: number): boolean {
-        return (currentChunk + '\n' + text).length <= maxChunkLength;
-    }
-
-    /**
-     * Agrega un texto al fragmento actual, separando por salto de línea si es necesario.
-     * 
-     * @param currentChunk Fragmento actual.
-     * @param text Texto a agregar.
-     * @returns El fragmento actualizado.
-     */
-    private addToChunk(currentChunk: string, text: string): string {
-        return currentChunk ? currentChunk + '\n' + text : text;
-    }
-
-    /**
-     * Procesa un párrafo: si es demasiado largo, lo divide en oraciones;
-     * si no, lo agrega directamente a los fragmentos.
-     * 
-     * @param paragraph Párrafo a procesar.
-     * @param maxChunkLength Longitud máxima permitida.
-     * @param chunks Arreglo donde se agregan los fragmentos resultantes.
-     */
-    private processParagraph(paragraph: string, maxChunkLength: number, chunks: string[]): void {
-        if (paragraph.length > maxChunkLength) {
-            this.splitLongParagraph(paragraph, maxChunkLength, chunks);
-        } else {
-            chunks.push(paragraph);
-        }
-    }
-
-    /**
-     * Divide un párrafo muy largo en fragmentos más pequeños usando oraciones,
-     * asegurando que cada fragmento no exceda el tamaño máximo.
-     * 
-     * @param paragraph Párrafo largo a dividir.
-     * @param maxChunkLength Longitud máxima permitida.
-     * @param chunks Arreglo donde se agregan los fragmentos resultantes.
-     */
-    private splitLongParagraph(paragraph: string, maxChunkLength: number, chunks: string[]): void {
-        const sentences = paragraph.split(/(?<=[.?!])\s+/);
-        let sentenceChunk = '';
-
-        for (const sentence of sentences) {
-            if ((sentenceChunk + ' ' + sentence).trim().length <= maxChunkLength) {
-                sentenceChunk = sentenceChunk ? sentenceChunk + ' ' + sentence : sentence;
-            } else {
-                if (sentenceChunk) chunks.push(sentenceChunk.trim());
-                sentenceChunk = sentence;
-            }
-        }
-
-        if (sentenceChunk) chunks.push(sentenceChunk.trim());
-    }
-
-
 
     public async createEmbedding(chunk: string): Promise<any> {
         return this.openai.embeddings.create({
@@ -222,18 +100,57 @@ export class EmbeddingsService {
     }
 
 
-    public async querySimilarChunks(embedding: number[], typeFile: string, topK: number = 5,) {
+    async querySimilarChunks(
+        query: string,
+        typeFile?: string, // Por ejemplo: 'cotizacion' | 'reporte' | 'incidencia'
+        k: number = 4,
+        group: boolean = false,
+    ) {
         const index = this.pinecone.Index(this.indexName);
-        const response = await index.query({
-            vector: embedding,
-            topK,
-            includeMetadata: true,
-            filter: {
-                typeFile: typeFile
-            }
-        });
-        return response.matches || [];
+        const vectorStore = await PineconeStore.fromExistingIndex(
+            this.embedding,
+            { pineconeIndex: index, namespace: 'default' },
+        );
+        const filter = typeFile
+            ? { typeFile: typeFile }
+            : undefined;
+        const results = await (vectorStore as any).similaritySearch(query, k, filter);
+
+        if (!group) return results;
+
+
+        type ChunkDoc = {
+            pageContent: string;
+            metadata: {
+                fileId: string;
+                chunkIndex?: number;
+                [key: string]: any;
+            };
+            score?: number;
+        };
+
+
+        // Agrupa por fileId
+        const groupedByFileId: Record<string, ChunkDoc[]> = results.reduce((acc, doc) => {
+            const fileId = doc.metadata?.fileId;
+            if (!fileId) return acc;
+            if (!acc[fileId]) acc[fileId] = [];
+            acc[fileId].push(doc);
+            return acc;
+        }, {} as Record<string, ChunkDoc[]>);
+
+
+        // Selecciona el grupo con mayor relevancia (por score si está disponible)
+        const bestGroup = Object.values(groupedByFileId).sort((a, b) => {
+            const scoreA = a.reduce((sum, doc) => sum + (doc.score ?? 0), 0);
+            const scoreB = b.reduce((sum, doc) => sum + (doc.score ?? 0), 0);
+            return scoreB - scoreA;
+        })[0];
+
+        return bestGroup;
     }
+
+
     public async chat(prompt: Array<{ role: 'system' | 'user' | 'assistant', content: string }>, temperature: number = 0.7): Promise<any> {
         const response = await this.openai.chat.completions.create({
             model: 'gpt-4',
@@ -244,16 +161,14 @@ export class EmbeddingsService {
         return response.choices[0].message;
     }
 
-    async getTypeFileDocument(content: string, contexto: 'document' | 'query'): Promise<string> {
-        const prompt = contexto === 'document'
-            ? `
+    async getTypeFileDocument(content: string): Promise<string> {
+        const prompt = `
                 Analiza el siguiente texto extraído de un documento y determina cuál de los siguientes tipos representa mejor su contenido:
 
                 1. Informe de incidencia
                 2. Reporte de horas
                 3. Cotización
         
-
                 Texto del documento:
                 ---
                 ${content.slice(0, 2000)}
@@ -261,30 +176,47 @@ export class EmbeddingsService {
 
                 Responde únicamente con una de las siguientes palabras en minúsculas: "incidencia", "reporte_horas", "cotizacion", "otro".
                 `
-            : `
-                Analiza la siguiente pregunta o solicitud de un usuario y clasifícala en una de estas categorías:
-
-                1. Quiere información sobre un informe de incidencia
-                2. Quiere ver un reporte de horas
-                3. Está pidiendo una cotización
-               
-
-                Consulta del usuario:
-                ---
-                "${content}"
-                ---
-
-                Responde únicamente con uno de estos valores: "incidencia", "reporte_horas", "cotizacion", "otro".
-                `;
 
 
         const messages: Array<{ role: 'system' | 'user' | 'assistant', content: string }> = [
-            { role: 'system', content: 'Eres un clasificador inteligente de documentos y preguntas.' },
+            { role: 'system', content: 'Eres un clasificador inteligente de documentos' },
             { role: 'user', content: prompt }
         ];
         const respuesta = await this.chat(messages, 0);
         return respuesta.content.trim() as 'incidencia' | 'reporte_horas' | 'cotizacion';
 
     }
+
+    /** Nuevo Lanchaing */
+    async splitIntoChunks(text: string, metadata: Record<string, any>) {
+        const chunks = await this.splitter.createDocuments([text], [metadata]);
+
+        const enrichedChunks = chunks.map(chunk => {
+            return new Document({
+                pageContent: chunk.pageContent,
+                metadata: {
+                    ...chunk.metadata,
+                    chunk: chunk.pageContent, // Agrega el texto del chunk a la metadata
+                },
+            });
+        });
+
+        return enrichedChunks;
+    }
+
+    async storeInPinecone(
+        chunks: Document[],
+        indexName: string = this.indexName,
+    ) {
+        const index = this.pinecone.Index(indexName);
+        await PineconeStore.fromDocuments(chunks, this.embedding, {
+            pineconeIndex: index,
+            namespace: 'default',
+        });
+        return { message: 'Chunks almacenados correctamente.' };
+    }
+
+    /** Nuevo Lanchaing */
+
 
 }

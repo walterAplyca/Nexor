@@ -5,6 +5,11 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { getDriveService } from './google-drive.helper';
 import { DocumentContent } from '../interfaces/document.interface';
+import { marked } from 'marked';
+const htmlToDocx = require('html-to-docx');
+
+
+
 
 
 
@@ -41,8 +46,8 @@ export class GdriveService {
 
         const mimeFilter = mimeTypes.map(m => `mimeType='${m}'`).join(' or ');
 
+        // const query = `'${folderId}' in parents and (${mimeFilter}) and modifiedTime > '${last24h}' and trashed = false`;
         const query = `'${folderId}' in parents and (${mimeFilter}) and modifiedTime > '${last24h}' and trashed = false`;
-
         const res = await this.drive.files.list({
             q: query,
             fields: 'files(id, name, modifiedTime, mimeType)',
@@ -71,39 +76,16 @@ export class GdriveService {
      * @returns Un objeto con el ID del archivo y el enlace para verlo en Google Drive.
      */
     async createAndUploadDocument(content: DocumentContent) {
-        const { title, generalDescription, tasks, activities, deliveryTime, notes } = content;
-        const doc = new Document({
-            sections: [
-                {
-                    properties: {},
-                    children: [
-                        new Paragraph({ text: title, heading: "Heading1" }),
-                        new Paragraph({ text: generalDescription, spacing: { after: 200 } }),
-                        ...tasks.map(task => new Paragraph({ text: `• ${task}`, spacing: { after: 100 } })),
-                        new Paragraph({ text: "Resumen de actividades", heading: "Heading2", spacing: { before: 300 } }),
-                        new Table({
-                            rows: [
-                                new TableRow({
-                                    children: [
-                                        new TableCell({ children: [new Paragraph("Actividad")] }),
-                                        new TableCell({ children: [new Paragraph("Horas estimadas")] }),
-                                    ],
-                                }),
-                                ...activities.map(act => new TableRow({
-                                    children: [
-                                        new TableCell({ children: [new Paragraph(act.title)] }),
-                                        new TableCell({ children: [new Paragraph(`${act.hours}`)] }),
-                                    ],
-                                })),
-                            ],
-                        }),
-                        new Paragraph({ text: `Tiempo de entrega: ${deliveryTime}`, spacing: { before: 300 } }),
-                        new Paragraph({ text: `Notas: ${notes}`, spacing: { before: 200 } }),
-                    ],
-                },
-            ],
+
+        const { title, content: markdownContent } = content;
+        // Convertir Markdown a HTML
+        const htmlContent = marked(markdownContent);
+        // Convertir HTML a DOCX
+        const buffer = await htmlToDocx(htmlContent, {
+            title,
+            pageSize: 'A4',
+            margins: { top: 720, right: 720, bottom: 720, left: 720 },
         });
-        const buffer = await Packer.toBuffer(doc);
         const tempFilePath = path.join(__dirname, `temp-${uuidv4()}.docx`);
         fs.writeFileSync(tempFilePath, buffer);
 

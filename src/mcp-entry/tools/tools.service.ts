@@ -25,21 +25,19 @@ export class ToolsService {
      * @param messages - Historial de mensajes del chat.
      * @returns Un objeto con el mensaje de éxito y los datos generados por el modelo.
      */
-    async consultDocument(messages: Chat[]) {
+    async consultDocument(messages: Chat[], typeFile: string = 'incidencia') {
 
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 4);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 6, typeFile, true);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
                 { role: 'system', content: `Redacte un resumen ejecutivo de la información consultada` }
             ];
-            console.log('Prompt:', prompt);
-            console.log('Context:', context);
             return {
                 message: 'Respuesta generada correctamente',
                 data: await this.embeddingsService.chat(prompt, 0.7),
-                references: context.urls.length > 0 ? context.urls : undefined,
+                references: context.files.length > 0 ? context.files : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -52,19 +50,19 @@ export class ToolsService {
      * @returns Un objeto con el mensaje de éxito y el reporte generado por el modelo.
     **/
 
-    async generateReport(messages: Chat[]) {
+    async generateReport(messages: Chat[], typeFile: string = 'cotización') {
         try {
-            const { cleanedHistory, context } = await this.prepareContext(messages, 5);
+            const { cleanedHistory, context } = await this.prepareContext(messages, 5, typeFile, false);
             const prompt: Chat[] = [
                 ...cleanedHistory,
                 { role: 'system', content: `Contexto relevante:\n\n${context.context}` },
-                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización con estructura clara:\n- Título\n- Tabla con Producto, Precio, Marca\n- Comentario final` }
+                { role: 'system', content: `Tenga en cuenta los requerimientos que se encuentran en el contexto y Redacta una cotización en formato markdown con estructura clara, sin agregar valores de precios:\n- Título\n - Texto descriptivo de cada una de las tareas a realizar\n- Tabla con Producto, Número de horas\n- Comentario final` }
             ];
 
             return {
                 message: 'Respuesta generada correctamente',
-                data: await this.embeddingsService.chat(prompt, 0.7),
-                references: context.urls.length > 0 ? context.urls : undefined,
+                data: await this.embeddingsService.chat(prompt, 0.5),
+                references: context.files.length > 0 ? context.files : undefined,
             };
         } catch (error) {
             throw new BusinessLogicException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -85,9 +83,10 @@ export class ToolsService {
     }
 
 
-    private toolFormat(nameTool: string, description: string) {
+    private toolFormat(nameTool: string, title: string, description: string) {
         return {
             name: nameTool,
+            title: title,
             description: description,
             parameters: {
                 type: 'object',
@@ -108,75 +107,40 @@ export class ToolsService {
                             required: ['role', 'content'],
                         },
                     },
+                    typeFile: {
+                        type: 'string',
+                        description: 'Tipo de archivo del documento consultado, por ejemplo: "incidencia", "reporte_horas", "cotizacion"',
+                        enum: ['incidencia', 'reporte_horas', 'cotizacion'],
+                    },
                 },
-                required: ['chat'],
+                required: ['chat', 'typeFile'],
             },
         };
     }
 
     getAvailableTools() {
         return [
-            this.toolFormat('consult_document', 'Consulta un documento basado en el historial de chat y el contexto relevante'),
-            this.toolFormat('generate_report', 'Genera un reporte basado en el historial de chat y el contexto relevante'),
+            this.toolFormat('consult_document_existing', '', 'Consulta un documento basado en el historial de chat y el contexto relevante'),
+            this.toolFormat('draft_quotation', 'Redactar cotización preliminar', 'Genera un texto en formato Markdown con la estructura de una cotización, basado en el historial del chat donde el usuario describe requerimientos, necesidades o servicios esperados. No guarda archivos ni consulta documentos previos.'),
             {
-                name: 'generate_report',
-                description: 'Genera un informe o reporte a partir de un chat tipo conversación',
+                name: 'generate_quotation_file',
+                title: 'Generar cotización en Word desde texto',
+                description: "Recibe un texto en formato Markdown que representa una cotización",
                 parameters: {
                     type: 'object',
                     properties: {
-                        chat: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    role: {
-                                        type: 'string',
-                                        enum: ['system', 'user', 'assistant'],
-                                    },
-                                    content: {
-                                        type: 'string',
-                                    },
-                                },
-                                required: ['role', 'content'],
-                            },
+                        title: {
+                            type: 'string',
+                            description: 'Título de la cotización para crear el documento'
                         },
-                    },
-                    required: ['chat'],
-                },
-            },
-            {
-                name: 'generate_document',
-                description: 'Genera un documento en Google Drive a partir de una estructura con título, tareas, actividades, etc.',
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        title: { type: 'string' },
-                        generalDescription: { type: 'string' },
-                        tasks: {
-                            type: 'array',
-                            items: { type: 'string' },
-                        },
-                        activities: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    title: { type: 'string' },
-                                    hours: { type: 'number' },
-                                },
-                                required: ['title', 'hours'],
-                            },
-                        },
-                        deliveryTime: { type: 'string' },
-                        notes: { type: 'string' },
+                        content: {
+                            type: 'string',
+                            description: 'Contenido de la cotización en formato Markdown para generar un documento de Word.',
+                        }
                     },
                     required: [
                         'title',
-                        'generalDescription',
-                        'tasks',
-                        'activities',
-                        'deliveryTime',
-                        'notes',
+                        'content'
                     ],
                 },
             },
@@ -189,32 +153,33 @@ export class ToolsService {
      * @param messages - Historial de mensajes del chat.
      * @returns Un objeto con cleanedHistory, typeFile y context.
      */
-    private async prepareContext(messages: Chat[], topK: number = 5) {
+    private async prepareContext(messages: Chat[], topK: number = 5, typeFile: string = 'incidencia', group: boolean = false) {
         const cleanedHistory = truncateMessages(messages);
-        const typeFile = await this.embeddingsService.getTypeFileDocument(
-            cleanedHistory.map(m => m.content).join('\n'),
-            'query'
-        );
-        console.log('Type File:', typeFile);
-        const context = await this.getChunkChat(messages, typeFile, topK);
+        const context = await this.getChunkChat(messages, typeFile, topK, group);
         return { cleanedHistory, typeFile, context };
     }
 
 
-    private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5) {
+    private async getChunkChat(messages: Chat[], typeFile: string, topK: number = 5, group: boolean = false) {
         const lastUserMessage = this.getLastUserMessage(messages);
-        const embedding = await this.embeddingsService.createEmbedding(lastUserMessage?.content ?? '');
-        const embeddingRes = embedding.data[0].embedding;
-        const chunks = await this.embeddingsService.querySimilarChunks(embeddingRes, typeFile, topK);
-        const context = chunks.map(c => c.metadata?.text).join('\n\n');
-        console.log('Context in Chunks:', context);
-        const urls = chunks
-            .map(c => c.metadata?.url) // <- Asegúrate de que sea `.url` (no `.urls`)
-            .filter((url): url is string => typeof url === 'string'); // Solo strings válidos
+        const chunks = await this.embeddingsService.querySimilarChunks(lastUserMessage?.content ?? '', typeFile, topK, group);
+        const context = chunks.map(c => c.metadata?.chunk).join('\n\n');
+        const files = chunks
+            .map(c => {
+                const fileName = c.metadata?.fileName;
+                const url = c.metadata?.url;
+
+                if (typeof fileName === 'string' && typeof url === 'string') {
+                    return { fileName, url };
+                }
+
+                return null;
+            })
+            .filter((item): item is { fileName: string; url: string } => item !== null);
 
         return {
             context,
-            urls
+            files
         };
     }
 

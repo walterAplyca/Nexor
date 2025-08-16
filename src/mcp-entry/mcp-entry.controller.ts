@@ -1,20 +1,25 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { BusinessLogicException } from '../common/errors/business-errors';
 import { ToolsService } from './tools/tools.service';
 import { Chat } from '../common/interfaces/chat.interface';
+
 
 
 @Controller('mcp-entry')
 export class McpEntryController {
     constructor(private readonly toolsService: ToolsService) { }
 
+    @UseGuards(JwtAuthGuard)
     @Post()
+    @HttpCode(201)
     async handleTool(@Body() body: {
         tool_name: string;
         chat: Chat[];
         argumentos: any;
+        typeFile: string;
     }) {
-        const { tool_name, chat, argumentos } = body;
+        const { tool_name, chat, argumentos, typeFile } = body;
 
         let data: any = null;
         let message = 'Tool executed successfully';
@@ -22,13 +27,13 @@ export class McpEntryController {
 
         try {
             switch (tool_name) {
-                case 'consult_document':
-                    data = await this.toolsService.consultDocument(chat);
+                case 'consult_document_existing':
+                    data = await this.toolsService.consultDocument(chat, typeFile);
                     break;
-                case 'generate_report':
-                    data = await this.toolsService.generateReport(chat);
+                case 'draft_quotation':
+                    data = await this.toolsService.generateReport(chat, typeFile);
                     break;
-                case 'generate_document':
+                case 'generate_quotation_file':
                     data = await this.toolsService.generateDocument(argumentos);
                     break;
                 default:
@@ -44,6 +49,15 @@ export class McpEntryController {
     @Get('tools')
     getTools() {
         return this.toolsService.getAvailableTools();
+    }
+
+
+    @Get('health')
+    check() {
+        return {
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+        };
     }
 
 }

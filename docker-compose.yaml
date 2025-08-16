@@ -1,0 +1,32 @@
+services:
+  nexorapp:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: nexor-docker
+    container_name: nexorapp
+    restart: always # reiniciar el contenedor si se detiene
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      PORT: ${PORT}
+      GOOGLE_TYPE: ${GOOGLE_TYPE}
+      GOOGLE_PROJECT_ID: ${GOOGLE_PROJECT_ID}
+      GOOGLE_PRIVATE_KEY_ID: ${GOOGLE_PRIVATE_KEY_ID}
+      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+      GOOGLE_CLIENT_EMAIL: ${GOOGLE_CLIENT_EMAIL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_DRIVE_SCOPE: ${GOOGLE_DRIVE_SCOPE}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID}
+      PINECONE_API_KEY: ${PINECONE_API_KEY}
+      PINECONE_INDEX: ${PINECONE_INDEX}
+      PINECONE_ENVIRONMENT: ${PINECONE_ENVIRONMENT}
+      MODEL_EMBEDDINGS: ${MODEL_EMBEDDINGS}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NAMEUSER: ${NAMEUSER}
+      PASSWORD: ${PASSWORD}
+      ROLE: ${ROLE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+
+
